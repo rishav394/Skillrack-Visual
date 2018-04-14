@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 
 namespace First_Form_App
@@ -9,19 +10,24 @@ namespace First_Form_App
         {
             InitializeComponent();
             button1.Enabled = false;
-            textBox1.Select();
+            textBox1.Focus();
             label1.ReadOnly = true;
             label1.Visible = false;
+            ProgressBar1.MarqueeAnimationSpeed = 1000;
         }
-        
-        WebBrowser wb = new WebBrowser();
-        WebBrowser wb2 = new WebBrowser();
-        bool ct = true;
+
+        WebBrowser wb;
+        WebBrowser wb2;
+        bool ct;
+        string[] words;
         string pagelink = "";
 
 
         private void button1_Click(object sender, EventArgs e)
         {
+            wb = new WebBrowser();
+            wb2 = new WebBrowser();
+            ProgressBar1.Increment(10);         //  Incremented 20
             label1.Visible = false;
             ct = true;
             label1.Text = "";
@@ -30,6 +36,7 @@ namespace First_Form_App
             wb.ScriptErrorsSuppressed = true;
             string temp= "https://vitspot.com/?s="+textBox1.Text;
             wb.Navigate(temp);
+            ProgressBar1.Increment(20);         //  Incremented 20
             wb.DocumentCompleted += Wb_DocumentCompleted;
         }
 
@@ -46,12 +53,22 @@ namespace First_Form_App
                         break;
                     }
                 }
-                
-                
+                ProgressBar1.Increment(20);     //  Incremented 20
+
+                if (pagelink == "")
+                {
+                    ProgressBar1.Value = 0;
+                    MessageBox.Show("Sorry the entered code was not found.", "Please try another id");
+                    button1.Enabled = true;
+                    textBox1.Enabled = true;
+                    wb.Dispose();
+                    return;
+                }
                 wb2.ScriptErrorsSuppressed = true;
                 wb2.Navigate(pagelink.Trim());
                
                 wb2.DocumentCompleted += Wb2_DocumentCompleted;
+                wb.Dispose();
             }
         }
 
@@ -67,22 +84,50 @@ namespace First_Form_App
                 if (Findid() == null)
                 {
                     MessageBox.Show("Sorry the entered code was not found.","Please try another id");
+                    ProgressBar1.Value = 0;      //  Reset
+                    wb2.Dispose();
                     return;
                 }
-                string[] words = pagelink.Split('/');
+                words = pagelink.Split('/');
                 words[4] = words[4].Replace('-', ' ').ToUpper().Trim();
-               
+
                 MessageBox.Show( words[4] + Environment.NewLine+ "Opening now!","Found");
                 string data= wb2.Document.GetElementById(Findid()).InnerText;
                 label1.Visible = true;
+                data = data.Substring(3);
+                data = Removecrap(data);
+                label1.Focus();
                 label1.Text = data;
-                
+                saveToolStripMenuItem.Enabled = true;
+                ProgressBar1.Value = 100;     //   Set 100 %
+                wb2.Dispose();
             }
 
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private string Removecrap(string data)
         {
+            int i;
+            for(i = 0; i < data.Length; i++)
+            {
+                if (data[i] == '1')
+                {
+                    if (data[i + 3] == '2')
+                    {
+                        if (data[i + 6] == '3')
+                        {
+                            break;
+                        }
+                    }
+
+                }
+            }
+            return data.Substring(0,i);
+        }
+
+        private void TextBox1_TextChanged(object sender, EventArgs e)
+        {
+            ProgressBar1.Value = 0;      //  Reset
             button1.Enabled = true;
             if (string.IsNullOrEmpty(textBox1.Text))
             {
@@ -104,7 +149,60 @@ namespace First_Form_App
             return null;
         }
 
-      
+        private void VersionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
 
+        }
+
+        private void DevelopersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void ExitAltToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "C++ file|*.cpp";
+            sfd.FileName = words[4];
+            if (sfd.ShowDialog() == DialogResult.OK)
+            {
+                StreamWriter sw = new StreamWriter(File.Create(sfd.FileName));
+                sw.Write(label1.Text);
+                sw.Dispose();
+            }
+
+        }
+
+        private void button1_KeyDown(object sender, KeyEventArgs e)
+        {
+            Saveit(sender,e);
+        }
+
+        private void label1_KeyDown(object sender, KeyEventArgs e)
+        {
+            Saveit(sender,e);
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            Saveit(sender,e);
+        }
+        
+        public void Saveit(Object sender,KeyEventArgs e)
+        {
+            if (!label1.Visible)
+            {
+                return;
+            }
+            if (e.Control && e.KeyCode.ToString() == "S")
+            {
+                SaveToolStripMenuItem_Click(sender, e);
+            }
+        }
     }
 }
