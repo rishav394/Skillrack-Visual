@@ -9,6 +9,7 @@ namespace First_Form_App
         public Form1()
         {
             InitializeComponent();
+            MaximizeBox = false;
             button1.Enabled = false;
             textBox1.Focus();
             label1.ReadOnly = true;
@@ -29,6 +30,7 @@ namespace First_Form_App
             wb2 = new WebBrowser();
             ProgressBar1.Increment(10);         //  Incremented 20
             label1.Visible = false;
+            saveToolStripMenuItem.Enabled = false;
             ct = true;
             label1.Text = "";
             textBox1.Enabled = false;
@@ -94,7 +96,10 @@ namespace First_Form_App
                 MessageBox.Show( words[4] + Environment.NewLine+ "Opening now!","Found");
                 string data= wb2.Document.GetElementById(Findid()).InnerText;
                 label1.Visible = true;
-                data = data.Substring(3);
+                if (data[0] == 'C' || data[1] == 'C')
+                {
+                    data = data.Substring(3);
+                }
                 data = Removecrap(data);
                 label1.Focus();
                 label1.Text = data;
@@ -151,11 +156,16 @@ namespace First_Form_App
 
         private void VersionToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            ///Should display the basic info, version, credits and all.
+            Version vr = new Version();
+            vr.ShowDialog();
         }
 
         private void DevelopersToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ///Should go to gitHub
+            ///
+            System.Diagnostics.Process.Start("https://github.com/rishav394/Skillrack-Visual");
 
         }
 
@@ -203,6 +213,14 @@ namespace First_Form_App
             {
                 SaveToolStripMenuItem_Click(sender, e);
             }
+        }
+
+        private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ///Checking for updates
+            ///Open a new Dialogue box and show the changelogs if updates are available
+            //if(Version_control.Vno!="tag from github")
+            MessageBox.Show("You are already on the lastest version", "Gracias", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 }
